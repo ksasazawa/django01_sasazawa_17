@@ -1,0 +1,49 @@
+{% load static %}
+{% load widget_tweaks %}
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>Chatアプリ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar is-success">
+        <div class="navbar-brand">
+          <a href="/" class="navbar-item">
+            <strong>sasasaのChatサイト</strong>
+          </a>
+        </div>
+    </nav>
+
+    <div class="has-text-centered" style="position: absolute; top: 50%; left: 50%; transform: translateY(-50%) translateX(-50%);">
+        <div class="is-size-2">あなたのストレス度は</div><br>
+        <div class="is-size-1 has-text-weight-semibold">
+            {{score}}％
+        </div>
+    </div>
+
+    <div class="columns">
+        <div class="column"></div>
+        <div class="column"></div>
+        <div class="column has-text-centered">
+            <div class="takayuki_voice has-text-centered balloon1" style="margin: 100px; font-size: 20px;"></div>
+            <div class="takayuki"></div>
+        </div>
+    </div>
+    <script>
+        if(parseInt("{{score}}")<50){
+            document.querySelector(".takayuki").innerHTML = "<img src='{% static 'img/takayuki_good.png' %}' alt=''>"
+            document.querySelector(".takayuki_voice").innerHTML = "その調子でいこう！"
+        }
+        else{
+            document.querySelector(".takayuki").innerHTML = "<img src='{% static 'img/takayuki_bad.png' %}' alt=''>"
+            document.querySelector(".takayuki_voice").innerHTML = "お疲れかも、、少し休もう。"
+        }
+    </script>
+
+</body>
+</html>

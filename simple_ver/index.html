@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>Chatアプリ</title>
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ksasazawa.github.io/django01_sasazawa_17/simple_ver/">
+    <meta property="og:image" content="https://ksasazawa.github.io/django01_sasazawa_17/simple_ver/img/kasumi.jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:title" content="有村架純_AIチャットボット" />
+    <meta property="og:description" content="機械学習でネガポジ判定して返信してくれます。" />
+    <meta property="og:site_name" content="有村架純_AIチャットボット" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="navbar is-success">
+        <div class="navbar-brand">
+          <a href="/" class="navbar-item">
+            <strong>sasasaのChatサイト</strong>
+          </a>
+        </div>
+    </nav>
+
+    <!-- コンテンツ表示画面 -->
+
+    <div class="columns">
+        <div class="column">
+            <div class="photo">
+                <img src="img/otaku.jpeg" alt="">
+            </div>
+            <div>
+                <textarea id="u1_text" cols="20" rows="5" class="textarea"></textarea>
+                <div class="columns">
+                    <div class="column has-text-left">
+                        <button id="start" class="button has-text-left">Start</button>
+                    </div>
+                    <div class="column has-text-centered">
+                        <button id="stop" class="button has-text-centered">Stop</button>
+                    </div>                    
+                    <div class="column has-text-right">
+                        <button id="u1_send" class="button has-text-right">▶️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div id="output" class="box" style="overflow: auto;height: 700px;">
+            </div>
+        </div>
+        <div class="column">
+            <div class="photo">
+                <img src="img/kasumi.jpeg" alt="">
+            </div>
+            <div>
+                <textarea id="u2_text" cols="20" rows="5" class="textarea"></textarea>
+                <div class="has-text-left">
+                    <button id="u2_send" class="button">◀️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 以下JavaScript領域 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+    <script>
+        $("#start").on('click', function(){
+            SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+            let recognition = new SpeechRecognition();
+          
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = true;
+            recognition.continuous = true;
+          
+            let finalTranscript = ''; // 確定した(黒の)認識結果
+          
+            recognition.onresult = (event) => {
+              let interimTranscript = ''; // 暫定(灰色)の認識結果
+              for (let i = event.resultIndex; i < event.results.length; i++) {
+                let transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                  finalTranscript += transcript;
+                } else {
+                  interimTranscript = transcript;
+                }
+              }
+              $("#u1_text").val(finalTranscript + interimTranscript);
+              console.log(finalTranscript + interimTranscript)
+            }
+            recognition.start();
+
+            $("#stop").on('click', function(){
+                recognition.stop();
+            });
+        });
+    </script>
+
+    <!-- 以下Firebase -->
+
+    <script type="module">
+
+
+
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved } 
+        from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+        // Your web app's Firebase configuration
+
+        const app = initializeApp(firebaseConfig);
+        const db  = getDatabase(app); //RealtimeDBに接続
+        const dbRef = ref(db,"gschat00"); //RealtimeDB内の"chat"を使う
+        
+        //データ登録(Click)
+        $("#u1_send").on("click",function() {
+            const now = new Date();
+            const next_month = now.getMonth()+1;
+            const now_datetime = now.getFullYear() + "/" + next_month + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+            const msg = {
+                user: "user1",
+                text: $("#u1_text").val(),
+                date: now_datetime,
+            }
+            const newPostRef = push(dbRef); //ユニークKEYを生成
+            set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            $("#u1_text").val("");
+
+            if((msg.text.includes('かわいい')||msg.text.includes('可愛い'))&&msg.text.includes('ブス')){
+                const now = new Date();
+                const next_month = now.getMonth()+1;
+                const now_datetime = now.getFullYear() + "/" + next_month + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                const msg = {
+                    user: "user2",
+                    text: "どっちやねん",
+                    date: now_datetime,
+                }
+                const newPostRef = push(dbRef); //ユニークKEYを生成
+                set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            }
+            else if(msg.text.includes('かわいい')||msg.text.includes('可愛い')){
+                const now = new Date();
+                const next_month = now.getMonth()+1;
+                const now_datetime = now.getFullYear() + "/" + next_month + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                const msg = {
+                    user: "user2",
+                    text: "ありがとう！",
+                    date: now_datetime,
+                }
+                const newPostRef = push(dbRef); //ユニークKEYを生成
+                set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            }
+            else if(msg.text.includes('ブス')){
+                const now = new Date();
+                const next_month = now.getMonth()+1;
+                const now_datetime = now.getFullYear() + "/" + next_month + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                const msg = {
+                    user: "user2",
+                    text: "コロス",
+                    date: now_datetime,
+                }
+                const newPostRef = push(dbRef); //ユニークKEYを生成
+                set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            }
+            else{
+                const now = new Date();
+                const next_month = now.getMonth()+1;
+                const now_datetime = now.getFullYear() + "/" + next_month + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                const msg = {
+                    user: "user2",
+                    text: "Purdun!?",
+                    date: now_datetime,
+                }
+                const newPostRef = push(dbRef); //ユニークKEYを生成
+                set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            }
+        });
+        $("#u2_send").on("click",function() {
+            const now = new Date();
+            const next_month = now.getMonth()+1;
+            const now_datetime = now.getFullYear() + "/" + next_month + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+            const msg = {
+                user: "user2",
+                text: $("#u2_text").val(),
+                date: now_datetime,
+            }
+            const newPostRef = push(dbRef); //ユニークKEYを生成
+            set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+            $("#u2_text").val("");
+        });
+
+        //最初にデータ取得＆onSnapshotでリアルタイムにデータを取得
+        onChildAdded(dbRef, function(data){   
+            const msg  = data.val();    //オブジェクトデータを取得し、変数msgに代入
+            const key  = data.key;      //データのユニークキー（削除や更新に使用可能）
+            console.log(msg.user)
+            if(msg.user=="user1"){
+                //表示用テキスト・HTMLを作成
+                let h = `<div class="has-text-left"><div class="balloon1 has-text-left"><p>${msg.text}</p></div></div>
+                        <br><div class="has-text-left"><p class="is-size-7">${msg.date}</p></div><br>`;
+                $("#output").append(h); //#outputの最後に追加
+            }
+            else if(msg.user=="user2"){
+                //表示用テキスト・HTMLを作成
+                let h = `<div class="has-text-right"><div class="balloon2 has-text-left"><p>${msg.text}</p></div></div>
+                        <br><div class="has-text-right"><p class="is-size-7">${msg.date}</p></div><br>`;
+                $("#output").append(h); //#outputの最後に追加
+            }
+            // 最下部にスクロール
+            let chatArea = document.getElementById('output'),
+            chatAreaHeight = chatArea.scrollHeight;
+            chatArea.scrollTop = chatAreaHeight;
+        });
+
+    </script>
+
+</body>
+</html>
